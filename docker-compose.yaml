@@ -1,0 +1,11 @@
+version: '3'
+services:
+  app:
+    build: .
+    ports:
+      - '9990:9990'
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm start
+
