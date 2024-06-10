@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from "react";
+import React, { useEffect, useMemo, useState } from "react";
 // react plugin for creating charts
 import ChartistGraph from "react-chartist";
 // @material-ui/core
@@ -35,17 +35,18 @@ import { bugs, website, server } from "variables/general.js";
 import {
   dailySalesChart,
   emailsSubscriptionChart,
-  completedTasksChart
+  completedTasksChart,
 } from "variables/charts.js";
 
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
-import axios from "axios"
-import ReactTable from "react-table-6" 
-import "react-table-6/react-table.css"  
-import Modal from "@material-ui/core/Modal"
-import Box from "@material-ui/core/Box"
+import axios from "axios";
+import ReactTable from "react-table-6";
+import "react-table-6/react-table.css";
+import Modal from "@material-ui/core/Modal";
+import Box from "@material-ui/core/Box";
 import { Button } from "react-bootstrap";
 import moment from "moment";
+import { apiGetOriginalData } from "services/CoreService";
 const useStyles = makeStyles(styles);
 
 // import moment from 'moment'
@@ -53,216 +54,211 @@ const useStyles = makeStyles(styles);
 export default function Dashboard() {
   //
   const [data, setData] = useState([]);
+  const fetchData = async () => {
+    try {
+      const res = await apiGetOriginalData({ page: 1, size: 1000 });
+      setData(res.data?.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
   useEffect(() => {
-    axios.get(`http://117.0.35.45:8866/api/original-data/search`)
-      .then(res => {
-        setData(res.data?.data);
-      })
-      .catch(err => console.error(err));
-  const interval = setInterval(() => {
-    axios.get(`http://117.0.35.45:8866/api/original-data/search`)
-      .then(res => {
-        setData(res.data?.data);
-      })
-      .catch(err => console.error(err));
-  }, 8000); //set your time here. repeat every 5 seconds
+    fetchData();
+    const interval = setInterval(() => {
+      fetchData();
+    }, 8000); //set your time here. repeat every 5 seconds
 
-  return () => clearInterval(interval);
-}, []);
+    return () => clearInterval(interval);
+  }, []);
   //
   const classes = useStyles();
-  const columns = useMemo(
-    () =>[
-      {
-          Header: 'ID',  
-          accessor: 'id',
-          maxWidth: 60
+  const columns = useMemo(() => [
+    {
+      Header: "ID",
+      accessor: "id",
+      maxWidth: 60,
+    },
+    {
+      Header: "Serial Number",
+      accessor: "serial_no",
+      minWidth: 120,
+    },
+    {
+      Header: "Created at",
+      accessor: "created_at",
+      Cell: (props) => {
+        if (
+          props.original.created_at == null ||
+          props.original.created_at == ""
+        )
+          return <div>-</div>;
+        else
+          return (
+            <div>
+              {moment(props.original.created_at).format("DD/MM/YYYY HH:mm")}
+            </div>
+          );
       },
-      {
-          Header: 'Serial Number',  
-          accessor: 'serial_no',
-          minWidth: 120   
+    },
+    {
+      Header: "Meter reading (m3)",
+      accessor: "meter_reading",
+      Cell: (props) => {
+        return <div>{props.original.meter_reading / 1000.0}</div>;
       },
-      {
-        Header: 'Created at',  
-        accessor: 'created_at',
-        Cell: ( props ) => {
-          // return <div>{props.original.reportTime}</div>
-          if((props.original.created_at == null)||(props.original.created_at == ""))
-          return <div>-</div>
-          else
-          return <div>{moment(props.original.created_at).format('DD/MM/YYYY HH:mm')}</div>
-         }
+    },
+    {
+      Header: "RSRP (dBm)",
+      accessor: "rsrp",
+      Cell: (props) => {
+        return <div>{props.original.rsrp / 10}</div>;
       },
-      {
-        Header: 'Meter reading (m3)',  
-        accessor: 'meter_reading',
-        Cell: (props) => {
-          return <div>{props.original.meter_reading/1000.000}</div>
-        }  
+    },
+    {
+      Header: "SNR (dB)",
+      accessor: "snr",
+      Cell: (props) => {
+        return <div>{props.original.snr / 10}</div>;
       },
-      {
-        Header: 'RSRP (dBm)',  
-        accessor: 'rsrp',
-        Cell: (props) => {
-          return <div>{props.original.rsrp/10}</div>
-        } 
+    },
+    {
+      Header: "Voltage (V)",
+      accessor: "voltage",
+      Cell: (props) => {
+        return <div>{props.original.voltage / 100.0}</div>;
       },
-      {
-        Header: 'SNR (dB)',  
-        accessor: 'snr',
-        Cell: (props) => {
-            return <div>{props.original.snr/10}</div>
-        }  
+    },
+    {
+      Header: "magnetic_attack_status",
+      accessor: "/82/0",
+      Cell: (props) => {
+        let info = JSON.parse(props.original["/82/0"]);
+        return <div>{info.magneticAttackStatus}</div>;
       },
-      {
-        Header: 'Voltage (V)',  
-        accessor: 'voltage', 
-        Cell: (props) => {
-            return <div>{props.original.voltage/100.00}</div>
-        }  
+    },
+    {
+      Header: "happenedMagneticAttack",
+      accessor: "/82/0",
+      Cell: (props) => {
+        let info = JSON.parse(props.original["/82/0"]);
+        return <div>{info.happenedMagneticAttack}</div>;
       },
-      {
-        Header: 'magnetic_attack_status',  
-        accessor: '/82/0',
-        Cell: (props) => {
-            let info = JSON.parse(props.original['/82/0']);
-            return <div>{info.magneticAttackStatus}</div>
-        }  
+    },
+    {
+      Header: "antiDemolition",
+      accessor: "/82/0",
+      Cell: (props) => {
+        let info = JSON.parse(props.original["/82/0"]);
+        return <div>{info.antiDemolition}</div>;
       },
-      {
-        Header: 'happenedMagneticAttack',  
-        accessor: '/82/0',
-        Cell: (props) => {
-            let info = JSON.parse(props.original['/82/0']);
-            return <div>{info.happenedMagneticAttack}</div>
-        }  
+    },
+    {
+      Header: "happenedAntiDemolition",
+      accessor: "/82/0",
+      Cell: (props) => {
+        let info = JSON.parse(props.original["/82/0"]);
+        return <div>{info.happenedAntiDemolition}</div>;
       },
-      {
-        Header: 'antiDemolition',  
-        accessor: '/82/0',
-        Cell: (props) => {
-            let info = JSON.parse(props.original['/82/0']);
-            return <div>{info.antiDemolition}</div>
-        }  
+    },
+    {
+      Header: "Report period (min)",
+      accessor: "reportPeriod",
+      Cell: (props) => {
+        return <div>{props.original.report_period / 60}</div>;
       },
-      {
-        Header: 'happenedAntiDemolition',  
-        accessor: '/82/0',
-        Cell: (props) => {
-            let info = JSON.parse(props.original['/82/0']);
-            return <div>{info.happenedAntiDemolition}</div>
-        }  
-      },
-      {
-        Header: 'Report period (min)',  
-        accessor: 'reportPeriod',
-        Cell: (props) => {
-            return <div>{props.original.report_period/60}</div>
-        }  
-      },
-      {
-        Header: 'Pulse constant (L/P)',  
-        accessor: 'pulseConstant',
-        Cell: (props) => {
-          if(props.original.pulse_constant == "0")
-          {
-            return <div>Direct reading meter</div>
-          }
-          else if(props.original.pulse_constant == "1")
-          {
-            return <div>1</div>
-          }
-          else if(props.original.pulse_constant == "2")
-          {
-            return <div>10</div>
-          }
-          else if(props.original.pulse_constant == "3")
-          {
-            return <div>100</div>
-          }
-          else if(props.original.pulse_constant == "4")
-          {
-            return <div>1000</div>
-          }
-          else
-          {
-            return <div>-</div>
-          }
+    },
+    {
+      Header: "Pulse constant (L/P)",
+      accessor: "pulseConstant",
+      Cell: (props) => {
+        if (props.original.pulse_constant == "0") {
+          return <div>Direct reading meter</div>;
+        } else if (props.original.pulse_constant == "1") {
+          return <div>1</div>;
+        } else if (props.original.pulse_constant == "2") {
+          return <div>10</div>;
+        } else if (props.original.pulse_constant == "3") {
+          return <div>100</div>;
+        } else if (props.original.pulse_constant == "4") {
+          return <div>1000</div>;
+        } else {
+          return <div>-</div>;
         }
       },
-      // {
-      //   Header: 'Valve Status',  
-      //   accessor: 'valveStatus',
-      //   Cell: (props) => {
-      //     if(props.original.valveStatus == "0")
-      //     {
-      //       return <div>Open</div>
-      //     }
-      //     else if(props.original.pulseConstant == "1")
-      //     {
-      //       return <div>Close</div>
-      //     }
-      //     else if(props.original.pulseConstant == "3")
-      //     {
-      //       return <div>Is moving</div>
-      //     }
-      //     else
-      //     {
-      //       return <div>-</div>
-      //     }
-      //   }
-      // },
-      {
-        Header: 'Abnormal alarm',  
-        Cell: ( props ) => {
-            return <div>{props.original['/82/0']}</div>
-           }
-      }
-    ] 
-   )
+    },
+    // {
+    //   Header: 'Valve Status',
+    //   accessor: 'valveStatus',
+    //   Cell: (props) => {
+    //     if(props.original.valveStatus == "0")
+    //     {
+    //       return <div>Open</div>
+    //     }
+    //     else if(props.original.pulseConstant == "1")
+    //     {
+    //       return <div>Close</div>
+    //     }
+    //     else if(props.original.pulseConstant == "3")
+    //     {
+    //       return <div>Is moving</div>
+    //     }
+    //     else
+    //     {
+    //       return <div>-</div>
+    //     }
+    //   }
+    // },
+    {
+      Header: "Abnormal alarm",
+      Cell: (props) => {
+        return <div>{props.original["/82/0"]}</div>;
+      },
+    },
+  ]);
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const [detail, setDetail] = useState({});
   return (
     <div>
-    <Modal
+      <Modal
         open={open}
         onClose={handleClose}
         aria-labelledby="child-modal-title"
         aria-describedby="child-modal-description"
       >
-        <Box style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          backgroundColor: "white",
-          padding: "10px",
-          width: "50%",
-          height: "50%",
-          overflow: "hidden",
-          overflowY: "scroll" // added scroll
-        }}>
+        <Box
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            backgroundColor: "white",
+            padding: "10px",
+            width: "50%",
+            height: "50%",
+            overflow: "hidden",
+            overflowY: "scroll", // added scroll
+          }}
+        >
           <h2 id="child-modal-title">Detail</h2>
-          <p style={{fontWeight: "bold"}}>pn:/3/0</p>
-          <p style={{wordWrap: "break-word"}}>{detail['/3/0']}</p>
-          <p style={{fontWeight: "bold"}}>pn:/70/0</p>
-          <p style={{wordWrap: "break-word"}}>{detail['/70/0']}</p>
-          <p style={{fontWeight: "bold"}}>pn:/80/0</p>
-          <p style={{wordWrap: "break-word"}}>{detail['/80/0']}</p>
-          <p style={{fontWeight: "bold"}}>pn:/81/0</p>
-          <p style={{wordWrap: "break-word"}}>{detail['/81/0']}</p>
-          <p style={{fontWeight: "bold"}}>pn:/82/0</p>
-          <p style={{wordWrap: "break-word"}}>{detail['/82/0']}</p>
-          <p style={{fontWeight: "bold"}}>pn:/84/0</p>
-          <p style={{wordWrap: "break-word"}}>{detail['/84/0']}</p>
-          <p style={{fontWeight: "bold"}}>pn:/99/0</p>
-          <p style={{wordWrap: "break-word"}}>{detail['/99/0']}</p>
+          <p style={{ fontWeight: "bold" }}>pn:/3/0</p>
+          <p style={{ wordWrap: "break-word" }}>{detail["/3/0"]}</p>
+          <p style={{ fontWeight: "bold" }}>pn:/70/0</p>
+          <p style={{ wordWrap: "break-word" }}>{detail["/70/0"]}</p>
+          <p style={{ fontWeight: "bold" }}>pn:/80/0</p>
+          <p style={{ wordWrap: "break-word" }}>{detail["/80/0"]}</p>
+          <p style={{ fontWeight: "bold" }}>pn:/81/0</p>
+          <p style={{ wordWrap: "break-word" }}>{detail["/81/0"]}</p>
+          <p style={{ fontWeight: "bold" }}>pn:/82/0</p>
+          <p style={{ wordWrap: "break-word" }}>{detail["/82/0"]}</p>
+          <p style={{ fontWeight: "bold" }}>pn:/84/0</p>
+          <p style={{ wordWrap: "break-word" }}>{detail["/84/0"]}</p>
+          <p style={{ fontWeight: "bold" }}>pn:/99/0</p>
+          <p style={{ wordWrap: "break-word" }}>{detail["/99/0"]}</p>
           <Button onClick={handleClose}>Close</Button>
         </Box>
-      </Modal>  
+      </Modal>
       <GridContainer>
         <GridItem xs={12} sm={12} md={12}>
           <Card>
@@ -288,37 +284,35 @@ export default function Dashboard() {
                   item['/82/0']
                 ])}
               /> */}
-              <ReactTable  
-                  // data={(selectedDev === "") ? (data) : (data.filter(function (item) {return item.serialNo === selectedDev}))}  
-                  data={(data != null) ? (data) : ([])}
-                  columns={columns}  
-                  defaultPageSize = {20}  
-                  pageSizeOptions = {[10, 20, 50, 100]}  
-                  className="-striped -highlight"
-                  getTrProps={(state, rowInfo, column, instance) => {
-                    return {
-                        onClick: e => {
-                            console.log(rowInfo.original.id);
-                            if(rowInfo.original != null)
-                            {
-                              setDetail(
-                                {
-                                '/3/0': rowInfo.original['/3/0'],
-                                '/70/0': rowInfo.original['/70/0'],
-                                '/80/0': rowInfo.original['/80/0'],
-                                '/81/0': rowInfo.original['/81/0'],
-                                '/82/0': rowInfo.original['/82/0'],
-                                '/84/0': rowInfo.original['/84/0'],
-                                '/99/0': rowInfo.original['/99/0']
-                              });
-                            }
-                            
-                            setOpen(true);
-                            console.log(detail)
-                        }
-                    }
-                  }}
-              /> 
+              <ReactTable
+                // data={(selectedDev === "") ? (data) : (data.filter(function (item) {return item.serialNo === selectedDev}))}
+                data={data != null ? data : []}
+                columns={columns}
+                defaultPageSize={20}
+                pageSizeOptions={[10, 20, 50, 100]}
+                className="-striped -highlight"
+                getTrProps={(state, rowInfo, column, instance) => {
+                  return {
+                    onClick: (e) => {
+                      console.log(rowInfo.original.id);
+                      if (rowInfo.original != null) {
+                        setDetail({
+                          "/3/0": rowInfo.original["/3/0"],
+                          "/70/0": rowInfo.original["/70/0"],
+                          "/80/0": rowInfo.original["/80/0"],
+                          "/81/0": rowInfo.original["/81/0"],
+                          "/82/0": rowInfo.original["/82/0"],
+                          "/84/0": rowInfo.original["/84/0"],
+                          "/99/0": rowInfo.original["/99/0"],
+                        });
+                      }
+
+                      setOpen(true);
+                      console.log(detail);
+                    },
+                  };
+                }}
+              />
             </CardBody>
           </Card>
         </GridItem>

@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from "react";
+import React, { useEffect, useMemo, useState } from "react";
 // react plugin for creating charts
 import ChartistGraph from "react-chartist";
 // @material-ui/core
@@ -35,156 +35,141 @@ import { bugs, website, server } from "variables/general.js";
 import {
   dailySalesChart,
   emailsSubscriptionChart,
-  completedTasksChart
+  completedTasksChart,
 } from "variables/charts.js";
 
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
-import axios from "axios"
-import ReactTable from "react-table-6" 
-import "react-table-6/react-table.css"  
+import axios from "axios";
+import ReactTable from "react-table-6";
+import "react-table-6/react-table.css";
+import moment from "moment";
+import { apiGetReturnCmd } from "services/CoreService";
 const useStyles = makeStyles(styles);
 
 export default function Dashboard() {
   //
   const [data, setData] = useState([]);
-  useEffect(() => {
-    axios.get(`http://117.0.35.45:9989/returncmd`)
-      .then(res => {
-        setData(res.data);
-      })
-      .catch(err => console.error(err));
-  const interval = setInterval(() => {
-    axios.get(`http://117.0.35.45:9989/returncmd`)
-      .then(res => {
-        setData(res.data);
-      })
-      .catch(err => console.error(err));
-  }, 5000); //set your time here. repeat every 5 seconds
 
-  return () => clearInterval(interval);
-}, []);
+  const fetchReturnCmd = async () => {
+    try {
+      const res = await apiGetReturnCmd({ page: 1, size: 1000 });
+      setData(res.data?.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  useEffect(() => {
+    fetchReturnCmd();
+  }, []);
   //
   const classes = useStyles();
-  const columns = useMemo(
-    () =>[
-      {
-          Header: 'ID',  
-          accessor: 'id',
-          maxWidth: 60
+  const columns = useMemo(() => [
+    {
+      Header: "ID",
+      accessor: "id",
+      maxWidth: 60,
+    },
+    {
+      Header: "Serial Number",
+      accessor: "serial_no",
+      minWidth: 120,
+    },
+    {
+      Header: "IMEI",
+      accessor: "IMEI",
+      minWidth: 120,
+    },
+    {
+      Header: "Created at",
+      accessor: "created_at",
+      Cell: (props) => {
+        // return <div>{props.original.reportTime}</div>
+        if (
+          props.original.created_at == null ||
+          props.original.created_at == ""
+        )
+          return <div>-</div>;
+        else
+          return (
+            <div>
+              {moment(props.original.created_at)?.format("DD/MM/YYYY HH:mm")}
+            </div>
+          );
       },
-      {
-          Header: 'Serial Number',  
-          accessor: 'serialNo',
-          minWidth: 120   
+    },
+    {
+      Header: "Meter Reading (L)",
+      accessor: "meterReading",
+    },
+    {
+      Header: "RSRP (dBm)",
+      accessor: "rsrp",
+      Cell: (props) => {
+        return <div>{props.original.rsrp / 10}</div>;
       },
-      {
-        Header: 'IMEI',  
-        accessor: 'IMEI',
-        minWidth: 120   
+    },
+    {
+      Header: "SNR (dB)",
+      accessor: "snr",
+      Cell: (props) => {
+        return <div>{props.original.snr / 10}</div>;
       },
-      {
-        Header: 'Created at',  
-        accessor: 'createdAt',
-        Cell: ( props ) => {
-          // return <div>{props.original.reportTime}</div>
-          if((props.original.createdAt == null)||(props.original.createdAt == ""))
-          return <div>-</div>
-          else
-          return <div>{new Intl.DateTimeFormat('vi-VN', {year: 'numeric', month: '2-digit',day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'}).format(props.original.createdAt)}</div>
-         }
+    },
+    {
+      Header: "Voltage (V)",
+      accessor: "voltage",
+      Cell: (props) => {
+        return <div>{props.original.voltage / 100.0}</div>;
       },
-      {
-        Header: 'Meter Reading (L)',  
-        accessor: 'meterReading'  
+    },
+    {
+      Header: "Report period (min)",
+      accessor: "report_period",
+      Cell: (props) => {
+        return <div>{props.original.report_period / 60}</div>;
       },
-      {
-        Header: 'RSRP (dBm)',  
-        accessor: 'rsrp',
-        Cell: (props) => {
-          return <div>{props.original.rsrp/10}</div>
-        } 
-      },
-      {
-        Header: 'SNR (dB)',  
-        accessor: 'snr',
-        Cell: (props) => {
-            return <div>{props.original.snr/10}</div>
-        }  
-      },
-      {
-        Header: 'Voltage (V)',  
-        accessor: 'voltage', 
-        Cell: (props) => {
-            return <div>{props.original.voltage/100.00}</div>
-        }  
-      },
-      {
-        Header: 'Report period (min)',  
-        accessor: 'reportPeriod',
-        Cell: (props) => {
-            return <div>{props.original.reportPeriod/60}</div>
-        }  
-      },
-      {
-        Header: 'Pulse constant (L/P)',  
-        accessor: 'pulseConstant',
-        Cell: (props) => {
-          if(props.original.pulseConstant == "0")
-          {
-            return <div>Direct reading meter</div>
-          }
-          else if(props.original.pulseConstant == "1")
-          {
-            return <div>1</div>
-          }
-          else if(props.original.pulseConstant == "2")
-          {
-            return <div>10</div>
-          }
-          else if(props.original.pulseConstant == "3")
-          {
-            return <div>100</div>
-          }
-          else if(props.original.pulseConstant == "4")
-          {
-            return <div>1000</div>
-          }
-          else
-          {
-            return <div>-</div>
-          }
+    },
+    {
+      Header: "Pulse constant (L/P)",
+      accessor: "pulse_constant",
+      Cell: (props) => {
+        if (props.original.pulse_constant == "0") {
+          return <div>Direct reading meter</div>;
+        } else if (props.original.pulse_constant == "1") {
+          return <div>1</div>;
+        } else if (props.original.pulse_constant == "2") {
+          return <div>10</div>;
+        } else if (props.original.pulse_constant == "3") {
+          return <div>100</div>;
+        } else if (props.original.pulse_constant == "4") {
+          return <div>1000</div>;
+        } else {
+          return <div>-</div>;
         }
       },
-      {
-        Header: 'Valve Status',  
-        accessor: 'valveStatus',
-        Cell: (props) => {
-          if(props.original.valveStatus == "0")
-          {
-            return <div>Open</div>
-          }
-          else if(props.original.pulseConstant == "1")
-          {
-            return <div>Close</div>
-          }
-          else if(props.original.pulseConstant == "3")
-          {
-            return <div>Is moving</div>
-          }
-          else
-          {
-            return <div>-</div>
-          }
+    },
+    {
+      Header: "Valve Status",
+      accessor: "valve_status",
+      Cell: (props) => {
+        if (props.original.valve_status == "0") {
+          return <div>Open</div>;
+        } else if (props.original.pulse_constant == "1") {
+          return <div>Close</div>;
+        } else if (props.original.pulse_constant == "3") {
+          return <div>Is moving</div>;
+        } else {
+          return <div>-</div>;
         }
       },
-      {
-        Header: 'Abnormal alarm',  
-        Cell: ( props ) => {
-            return <div>{props.original['/82/0']}</div>
-           }
-      }
-    ] 
-   )
+    },
+    {
+      Header: "Abnormal alarm",
+      Cell: (props) => {
+        return <div>{props.original["/82/0"]}</div>;
+      },
+    },
+  ]);
   return (
     <div>
       <GridContainer>
@@ -194,32 +179,14 @@ export default function Dashboard() {
               <h4 className={classes.cardTitleWhite}>Data</h4>
             </CardHeader>
             <CardBody>
-              {/* <Table
-                tableHeaderColor="primary"
-                tableHead={["ID", "Serial number", "IMEI", "Created at", "Meter reading (L)", "RSRP (dBm)", "SNR (dB)", "Voltage", "Report period (min)", "Pulse constant (L/P)", "Valve Status", "Abnormal alarm"]}
-                tableData = {data.map((item) => [
-                  item.id,
-                  item.serialNo,
-                  item.IMEI,
-                  new Intl.DateTimeFormat('vi-VN', {year: 'numeric', month: '2-digit',day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'}).format(item.createdAt),
-                  item.meterReading,
-                  item.rsrp/10,
-                  item.snr/10,
-                  item.voltage/100.00,
-                  item.reportPeriod/60,
-                  item.pulseConstant,
-                  item.valveStatus,
-                  item['/82/0']
-                ])}
-              /> */}
-              <ReactTable  
-                  // data={(selectedDev === "") ? (data) : (data.filter(function (item) {return item.serialNo === selectedDev}))}  
-                  data={(data != null) ? (data) : ([])}
-                  columns={columns}  
-                  defaultPageSize = {20}  
-                  pageSizeOptions = {[10, 20, 50, 100]}  
-                  className="-striped -highlight"
-              /> 
+              <ReactTable
+                // data={(selectedDev === "") ? (data) : (data.filter(function (item) {return item.serialNo === selectedDev}))}
+                data={data != null ? data : []}
+                columns={columns}
+                defaultPageSize={20}
+                pageSizeOptions={[10, 20, 50, 100]}
+                className="-striped -highlight"
+              />
             </CardBody>
           </Card>
         </GridItem>

@@ -1,22 +1,8 @@
-import React, {useEffect, useMemo, useState} from "react";
+import React, { useEffect, useMemo, useState } from "react";
 // react plugin for creating charts
 import ChartistGraph from "react-chartist";
 // @material-ui/core
 import { makeStyles } from "@material-ui/core/styles";
-import Icon from "@material-ui/core/Icon";
-// @material-ui/icons
-import Store from "@material-ui/icons/Store";
-import Devices from "@material-ui/icons/Watch";
-import Warning from "@material-ui/icons/Warning";
-import DateRange from "@material-ui/icons/DateRange";
-import LocalOffer from "@material-ui/icons/LocalOffer";
-import Update from "@material-ui/icons/Update";
-import ArrowUpward from "@material-ui/icons/ArrowUpward";
-import AccessTime from "@material-ui/icons/AccessTime";
-import Accessibility from "@material-ui/icons/Accessibility";
-import BugReport from "@material-ui/icons/BugReport";
-import Code from "@material-ui/icons/Code";
-import Cloud from "@material-ui/icons/Cloud";
 // core components
 import GridItem from "components/Grid/GridItem.js";
 import GridContainer from "components/Grid/GridContainer.js";
@@ -35,27 +21,30 @@ import { bugs, website, server } from "variables/general.js";
 import {
   dailySalesChart,
   emailsSubscriptionChart,
-  completedTasksChart
+  completedTasksChart,
 } from "variables/charts.js";
 
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
-import axios from "axios"
+import axios from "axios";
 // import InputLabel from '@mui/material/InputLabel';
 // import MenuItem from '@mui/material/MenuItem';
 // import FormControl from '@mui/material/FormControl';
 // import Select, { SelectChangeEvent } from '@mui/material/Select';
-import InputLabel from '@material-ui/core/InputLabel'
-import MenuItem from '@material-ui/core/MenuItem';
-import FormControl from '@material-ui/core/FormControl';
-import Select, { SelectChangeEvent } from '@material-ui/core/Select';
+import InputLabel from "@material-ui/core/InputLabel";
+import MenuItem from "@material-ui/core/MenuItem";
+import FormControl from "@material-ui/core/FormControl";
+import Select, { SelectChangeEvent } from "@material-ui/core/Select";
 import { Button } from "react-bootstrap";
-import TextField from "@material-ui/core/TextField"
-import ReactTable from "react-table-6" 
-import "react-table-6/react-table.css"  
-import Box from "@material-ui/core/Box"
-import Typography from "@material-ui/core/Typography"
-import Modal from "@material-ui/core/Modal"
+import TextField from "@material-ui/core/TextField";
+import ReactTable from "react-table-6";
+import "react-table-6/react-table.css";
+import Box from "@material-ui/core/Box";
+import Typography from "@material-ui/core/Typography";
+import Modal from "@material-ui/core/Modal";
 import moment from "moment";
+import { apiGetLinkDown } from "services/CoreService";
+import { apiGetDevicesInformation } from "services/CoreService";
+import { apiCreateLinkDown } from "services/CoreService";
 const useStyles = makeStyles(styles);
 export default function Dashboard() {
   //
@@ -66,158 +55,112 @@ export default function Dashboard() {
   const [meterReading, setMeterReading] = useState("0");
   const [pulseConstant, setPulseConstant] = useState("1");
   const [notification, setNotification] = useState("");
-  useEffect(() => {
-    axios.get(`http://117.0.35.45:8866/api/device/search`)
-      .then(res => {
-        setDeviceList(res.data?.data);
-      })
-      .catch(err => console.error(err));
-    //
-    axios.get(`http://117.0.35.45:8866/api/down-link-command/search`)
-        .then(res => {
-            setHistoricalCmd(res.data?.data);
-        })
-        .catch(err => console.error(err));
 
-    const interval = setInterval(() => {
-      axios.get(`http://117.0.35.45:8866/api/down-link-command/search`)
-        .then(res => {
-            setHistoricalCmd(res.data?.data);
-        })
-        .catch(err => console.error(err));
-    }, 5000);
-    return () => clearInterval(interval);
+  const fetchDevices = async () => {
+    try {
+      const res = await apiGetDevicesInformation({ page: 1, size: 1000 });
+      setDeviceList(res.data?.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const fetchSendLinkDown = async () => {
+    try {
+      const res = await apiGetLinkDown({ page: 1, size: 1000 });
+      setHistoricalCmd(res.data?.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchDevices();
+    fetchSendLinkDown();
   }, []);
   //
   const classes = useStyles();
   const columns = useMemo(() => [
     {
-        Header: 'ID',  
-        accessor: 'id',
-        maxWidth: 60  
+      Header: "ID",
+      accessor: "id",
+      maxWidth: 60,
     },
     {
-        Header: 'Status',  
-        accessor: 'is_sent',
-        Cell: (props) => {
-            if(props.original.is_sent == 1)
-            {
-                return (<div>Sent</div>);
-            }
-            else
-            {
-                return (<div style={{backgroundColor: "lightyellow"}}>Unsent</div>);
-            }
+      Header: "Status",
+      accessor: "is_sent",
+      Cell: (props) => {
+        if (props.original.is_sent == 1) {
+          return <div>Sent</div>;
+        } else {
+          return <div style={{ backgroundColor: "lightyellow" }}>Unsent</div>;
         }
+      },
     },
     {
-        Header: 'Serial number',  
-        accessor: 'serial_no',
-        Cell: (props) => {
-          return <div>{(props.original.imei != null) ? ((deviceList.filter(function(item) {return props.original.imei == item.imei}))[0]?.serial_no) : ("")}</div>
-        }
+      Header: "Serial number",
+      accessor: "serial_no",
+      Cell: (props) => {
+        return (
+          <div>
+            {props.original.imei != null
+              ? deviceList.filter(function (item) {
+                  return props.original.imei == item.imei;
+                })[0]?.serial_no
+              : ""}
+          </div>
+        );
+      },
     },
     {
-        Header: 'imei',  
-        accessor: 'imei'
+      Header: "imei",
+      accessor: "imei",
     },
     {
-        Header: 'Created at',  
-        accessor: 'created_at',
-        Cell: ( props ) => {
-            // return <div>{props.original.reportTime}</div>
-            return <div>{moment(props.original.created_at).format('DD/MM/YYYY HH:mm')}</div>
-           }
+      Header: "Created at",
+      accessor: "created_at",
+      Cell: (props) => {
+        // return <div>{props.original.reportTime}</div>
+        return (
+          <div>
+            {moment(props.original.created_at).format("DD/MM/YYYY HH:mm")}
+          </div>
+        );
+      },
     },
     {
-      Header: 'Command',  
-      accessor: 'cmd'
+      Header: "Command",
+      accessor: "cmd",
     },
-    // {
-    //     Header: 'Meter reading (L)',  
-    //     accessor: 'meterReading'
-    // },
-    // {
-    //     Header: 'Valve Control',  
-    //     accessor: 'valveControl',
-    //     Cell: (props) => {
-    //       if(props.original.valveControl == "0")
-    //       {
-    //         return <div>Open</div>
-    //       }
-    //       else if(props.original.valveControl == "0")
-    //       {
-    //         return <div>Close</div>
-    //       }
-    //       else
-    //       {
-    //         return <div></div>
-    //       }
-    //     }
-    // },
-    // {
-    //     Header: 'Server address',  
-    //     accessor: 'serverAddress'
-    // },
-    // {
-    //     Header: 'Report period (min)',  
-    //     accessor: 'reportPeriod'
-    // },
-    // {
-    //     Header: 'Dense data cycle (min)',
-    //     accessor: 'denseDataCycle'
-    // },
-    // {
-    //     Header: 'Pulse constant (P/L)',
-    //     accessor: 'pulseConstant'
-    // }
-  ])
+  ]);
   let handleSendCmd = async (e) => {
     e.preventDefault();
     // if(/^\d+$/.test(meterReading))
-    if(imei != "")
-    {
-        try {
-            console.log(JSON.stringify({imei: imei, cmd: cmd}));
-            let res = await fetch("http://117.0.35.45:8866/api/down-link-command/create", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                },
-            body: JSON.stringify({
-                imei: imei,
-                cmd: cmd,
-            }),
-            });
-            let resJson = await res.json();
-            if (res.status === 200) {
-            // setSerialNo("");
-            // setPayload("");
-            // setMessage("The command has been written to the cache.");
-            // handleShowModal();
-            setNotification("The command has been written to the cache.");
-            setOpen(true);
-            } else {
-            // setMessage("Some error occured.");
-            // handleShowModal();
-            setNotification("An error occourred");
-            setOpen(true);
-            }
-        } catch (err) {
-            setNotification("An error occourred: " + err);
-            setOpen(true);
+    if (imei != "") {
+      try {
+        console.log(JSON.stringify({ imei: imei, cmd: cmd }));
+        const res = await apiCreateLinkDown({ imei: imei, cmd: cmd });
+        if (res?.data.status === 200) {
+          setNotification("The command has been written to the cache.");
+          setOpen(true);
+          fetchSendLinkDown();
+        } else {
+          setNotification("An error occourred");
+          setOpen(true);
         }
-    }
-    else
-    {
-        setNotification("Please select a device before sending the command!");
+      } catch (err) {
+        setNotification("An error occourred: " + err);
         setOpen(true);
+      }
+    } else {
+      setNotification("Please select a device before sending the command!");
+      setOpen(true);
     }
-    };
+  };
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
-  
+
   return (
     <div>
       <Modal
@@ -226,25 +169,18 @@ export default function Dashboard() {
         aria-labelledby="child-modal-title"
         aria-describedby="child-modal-description"
       >
-        <Box style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          // color: 'blue',
-          backgroundColor: "white",
-          padding: "10px"
-          // border: '2px solid #f00',
-          // width: 400,
-          // bgcolor: 'primary.main',
-          // border: '2px solid #000',
-          // boxShadow: 24,
-          // p: 4,
-        }}>
+        <Box
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            backgroundColor: "white",
+            padding: "10px",
+          }}
+        >
           <h2 id="child-modal-title">Notification</h2>
-          <p id="child-modal-description">
-            {notification}
-          </p>
+          <p id="child-modal-description">{notification}</p>
           <Button onClick={handleClose}>Close</Button>
         </Box>
       </Modal>
@@ -253,30 +189,27 @@ export default function Dashboard() {
         <GridItem xs={12} sm={12} md={12}>
           <Card>
             <CardHeader color="info" stats icon>
-              {/* <CardIcon color="info">
-                <Devices />
-              </CardIcon> */}
               <p className={classes.cardCategory}>Device number</p>
             </CardHeader>
             <CardBody>
               <FormControl fullWidth>
-                <InputLabel id="demo-simple-select-label">Serial number</InputLabel>
+                <InputLabel id="demo-simple-select-label">
+                  Serial number
+                </InputLabel>
                 <Select
-                  // labelId="demo-simple-select-label"
-                  // id="demo-simple-select"
                   value={imei}
                   label="Serial number"
                   onChange={(e) => setImei(e.target.value)}
                 >
-                  {deviceList?.map((dev) => (<MenuItem value={dev.imei}>{dev.serial_no} - {dev.device_name}</MenuItem>))}
+                  {deviceList?.map((dev) => (
+                    <MenuItem value={dev.imei}>
+                      {dev.serial_no} - {dev.device_name}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </CardBody>
             <CardFooter>
-              {/* <div className={classes.stats}>
-                <DateRange />
-                Last 24 Hours
-              </div> */}
             </CardFooter>
           </Card>
         </GridItem>
@@ -288,14 +221,15 @@ export default function Dashboard() {
               <p>Meter reading (L)</p>
             </CardHeader>
             <CardBody>
-              <FormControl fullWidth onChange={(e) => setCmd({setMeterReading: e.target.value})}>
-                <TextField inputProps={{ type: 'number'}} />
+              <FormControl
+                fullWidth
+                onChange={(e) => setCmd({ setMeterReading: e.target.value })}
+              >
+                <TextField inputProps={{ type: "number" }} />
               </FormControl>
             </CardBody>
             <CardFooter>
-              <Button onClick={handleSendCmd}>
-                Send
-              </Button>
+              <Button onClick={handleSendCmd}>Send</Button>
             </CardFooter>
           </Card>
 
@@ -306,11 +240,8 @@ export default function Dashboard() {
             <CardBody>
               <FormControl fullWidth>
                 <Select
-                  // labelId="demo-simple-select-label"
-                  // id="demo-simple-select"
-                  // value={serialNo}
                   label="Repord period"
-                  onChange={(e) => setCmd({setReportPeriod: e.target.value})}
+                  onChange={(e) => setCmd({ setReportPeriod: e.target.value })}
                 >
                   <MenuItem value="5">5 minutes</MenuItem>
                   <MenuItem value="10">10 minutes</MenuItem>
@@ -323,9 +254,7 @@ export default function Dashboard() {
               </FormControl>
             </CardBody>
             <CardFooter>
-              <Button onClick={handleSendCmd}>
-                Send
-              </Button>
+              <Button onClick={handleSendCmd}>Send</Button>
             </CardFooter>
           </Card>
 
@@ -336,11 +265,8 @@ export default function Dashboard() {
             <CardBody>
               <FormControl fullWidth>
                 <Select
-                  // labelId="demo-simple-select-label"
-                  // id="demo-simple-select"
-                  // value={serialNo}
                   label="Valve control"
-                  onChange={(e) => setCmd({setValveControl: e.target.value})}
+                  onChange={(e) => setCmd({ setValveControl: e.target.value })}
                 >
                   <MenuItem value="0">Open</MenuItem>
                   <MenuItem value="1">Close</MenuItem>
@@ -348,49 +274,36 @@ export default function Dashboard() {
               </FormControl>
             </CardBody>
             <CardFooter>
-              {/* <div className={classes.stats}>
-                <DateRange />
-                Last 24 Hours
-              </div> */}
-              <Button onClick={handleSendCmd}>
-                Send
-              </Button>
+              <Button onClick={handleSendCmd}>Send</Button>
             </CardFooter>
           </Card>
         </GridItem>
         <GridItem xs={12} sm={12} md={6}>
-        <Card>
-          <CardHeader>
-            <p>Dense data cycle</p>
-          </CardHeader>
-          <CardBody>
-            <FormControl fullWidth>
-              <Select
-                // labelId="demo-simple-select-label"
-                // id="demo-simple-select"
-                // value={serialNo}
-                label="Dense data cycle"
-                onChange={(e) => setCmd({setDenseDataCycle: e.target.value})}
-              >
-                <MenuItem value="1">1 minute</MenuItem>
-                <MenuItem value="5">5 minutes</MenuItem>
-                <MenuItem value="15">15 minutes</MenuItem>
-                <MenuItem value="30">30 minutes</MenuItem>
-                <MenuItem value="60">1 hour</MenuItem>
-                <MenuItem value="720">12 hours</MenuItem>
-                <MenuItem value="1440">1 day</MenuItem>
-              </Select>
-            </FormControl>
-          </CardBody>
-          <CardFooter>
-            {/* <div className={classes.stats}>
-              <DateRange />
-              Last 24 Hours
-            </div> */}
-            <Button onClick={handleSendCmd}>
-              Send
-            </Button>
-          </CardFooter>
+          <Card>
+            <CardHeader>
+              <p>Dense data cycle</p>
+            </CardHeader>
+            <CardBody>
+              <FormControl fullWidth>
+                <Select
+                  label="Dense data cycle"
+                  onChange={(e) =>
+                    setCmd({ setDenseDataCycle: e.target.value })
+                  }
+                >
+                  <MenuItem value="1">1 minute</MenuItem>
+                  <MenuItem value="5">5 minutes</MenuItem>
+                  <MenuItem value="15">15 minutes</MenuItem>
+                  <MenuItem value="30">30 minutes</MenuItem>
+                  <MenuItem value="60">1 hour</MenuItem>
+                  <MenuItem value="720">12 hours</MenuItem>
+                  <MenuItem value="1440">1 day</MenuItem>
+                </Select>
+              </FormControl>
+            </CardBody>
+            <CardFooter>
+              <Button onClick={handleSendCmd}>Send</Button>
+            </CardFooter>
           </Card>
 
           <Card>
@@ -400,11 +313,8 @@ export default function Dashboard() {
             <CardBody>
               <FormControl fullWidth>
                 <Select
-                  // labelId="demo-simple-select-label"
-                  // id="demo-simple-select"
-                  // value={serialNo}
                   label="Pulse constant"
-                  onChange={(e) => setCmd({setPulseConstant: e.target.value})}
+                  onChange={(e) => setCmd({ setPulseConstant: e.target.value })}
                 >
                   <MenuItem value="1">1L/P</MenuItem>
                   <MenuItem value="2">10L/P</MenuItem>
@@ -418,13 +328,7 @@ export default function Dashboard() {
               </FormControl>
             </CardBody>
             <CardFooter>
-              {/* <div className={classes.stats}>
-                <DateRange />
-                Last 24 Hours
-              </div> */}
-              <Button onClick={handleSendCmd}>
-                Send
-              </Button>
+              <Button onClick={handleSendCmd}>Send</Button>
             </CardFooter>
           </Card>
 
@@ -433,19 +337,12 @@ export default function Dashboard() {
               <p>Server address</p>
             </CardHeader>
             <CardBody>
-              {/* <FormControl fullWidth onChange={(e) => setCmd({setServerAddress: e.target.value})}> */}
               <FormControl fullWidth>
-                <TextField inputProps={{ type: 'text'}} />
+                <TextField inputProps={{ type: "text" }} />
               </FormControl>
             </CardBody>
             <CardFooter>
-              {/* <div className={classes.stats}>
-                <DateRange />
-                Last 24 Hours
-              </div> */}
-              <Button>
-                Send
-              </Button>
+              <Button>Send</Button>
             </CardFooter>
           </Card>
         </GridItem>
@@ -458,15 +355,15 @@ export default function Dashboard() {
             </CardHeader>
             <CardBody>
               <ReactTable
-                  data={historicalCmd}  
-                  columns={columns}  
-                  defaultPageSize = {10}  
-                  pageSizeOptions = {[10, 20, 50, 100]}  
-                  selec
-                  style={{
+                data={historicalCmd}
+                columns={columns}
+                defaultPageSize={10}
+                pageSizeOptions={[10, 20, 50, 100]}
+                selec
+                style={{
                   height: "500px", // This will force the table body to overflow and scroll, since there is not enough room
-                  marginTop: "10px"
-                  }}
+                  marginTop: "10px",
+                }}
               />
             </CardBody>
           </Card>
