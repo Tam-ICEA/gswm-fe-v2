@@ -55,6 +55,7 @@ import "react-table-6/react-table.css"
 import Box from "@material-ui/core/Box"
 import Typography from "@material-ui/core/Typography"
 import Modal from "@material-ui/core/Modal"
+import moment from "moment";
 const useStyles = makeStyles(styles);
 export default function Dashboard() {
   //
@@ -66,22 +67,22 @@ export default function Dashboard() {
   const [pulseConstant, setPulseConstant] = useState("1");
   const [notification, setNotification] = useState("");
   useEffect(() => {
-    axios.get(`http://117.0.35.45:9989/deviceList`)
+    axios.get(`http://localhost:8086/api/device/search`)
       .then(res => {
-        setDeviceList(res.data);
+        setDeviceList(res.data?.data);
       })
       .catch(err => console.error(err));
     //
-    axios.get(`http://117.0.35.45:9989/downlinkCommand`)
+    axios.get(`http://localhost:8086/api/down-link-command/search`)
         .then(res => {
-            setHistoricalCmd(res.data);
+            setHistoricalCmd(res.data?.data);
         })
         .catch(err => console.error(err));
 
     const interval = setInterval(() => {
-        axios.get(`http://117.0.35.45:9989/downlinkCommand`)
+      axios.get(`http://localhost:8086/api/down-link-command/search`)
         .then(res => {
-            setHistoricalCmd(res.data);
+            setHistoricalCmd(res.data?.data);
         })
         .catch(err => console.error(err));
     }, 5000);
@@ -97,9 +98,9 @@ export default function Dashboard() {
     },
     {
         Header: 'Status',  
-        accessor: 'isSent',
+        accessor: 'is_sent',
         Cell: (props) => {
-            if(props.original.isSent == 'true')
+            if(props.original.is_sent == 1)
             {
                 return (<div>Sent</div>);
             }
@@ -111,21 +112,21 @@ export default function Dashboard() {
     },
     {
         Header: 'Serial number',  
-        accessor: 'IMEI',
+        accessor: 'serial_no',
         Cell: (props) => {
-          return <div>{(props.original.IMEI != null) ? ((deviceList.filter(function(item) {return props.original.IMEI == item.IMEI}))[0].serialNo) : ("")}</div>
+          return <div>{(props.original.imei != null) ? ((deviceList.filter(function(item) {return props.original.imei == item.imei}))[0]?.serial_no) : ("")}</div>
         }
     },
     {
-        Header: 'IMEI',  
-        accessor: 'IMEI'
+        Header: 'imei',  
+        accessor: 'imei'
     },
     {
         Header: 'Created at',  
-        accessor: 'createdAt',
+        accessor: 'created_at',
         Cell: ( props ) => {
             // return <div>{props.original.reportTime}</div>
-            return <div>{new Intl.DateTimeFormat('vi-VN', {year: 'numeric', month: '2-digit',day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'}).format(props.original.createdAt)}</div>
+            return <div>{moment(props.original.created_at).format('DD/MM/YYYY HH:mm')}</div>
            }
     },
     {
@@ -178,7 +179,7 @@ export default function Dashboard() {
     {
         try {
             console.log(JSON.stringify({imei: imei, cmd: cmd}));
-            let res = await fetch("http://117.0.35.45:9989/addDownlinkCommand", {
+            let res = await fetch("http://localhost:8086/api/down-link-command/create", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -267,7 +268,7 @@ export default function Dashboard() {
                   label="Serial number"
                   onChange={(e) => setImei(e.target.value)}
                 >
-                  {deviceList.map((dev) => (<MenuItem value={dev.IMEI}>{dev.serialNo}</MenuItem>))}
+                  {deviceList?.map((dev) => (<MenuItem value={dev.imei}>{dev.serial_no} - {dev.device_name}</MenuItem>))}
                 </Select>
               </FormControl>
             </CardBody>

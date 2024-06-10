@@ -45,24 +45,27 @@ import "react-table-6/react-table.css"
 import Modal from "@material-ui/core/Modal"
 import Box from "@material-ui/core/Box"
 import { Button } from "react-bootstrap";
+import moment from "moment";
 const useStyles = makeStyles(styles);
+
+// import moment from 'moment'
 
 export default function Dashboard() {
   //
   const [data, setData] = useState([]);
   useEffect(() => {
-    axios.get(`http://117.0.35.45:9989/datalog`)
+    axios.get(`http://localhost:8086/api/original-data/search`)
       .then(res => {
-        setData(res.data);
+        setData(res.data?.data);
       })
       .catch(err => console.error(err));
   const interval = setInterval(() => {
-    axios.get(`http://117.0.35.45:9989/datalog`)
+    axios.get(`http://localhost:8086/api/original-data/search`)
       .then(res => {
-        setData(res.data);
+        setData(res.data?.data);
       })
       .catch(err => console.error(err));
-  }, 5000); //set your time here. repeat every 5 seconds
+  }, 8000); //set your time here. repeat every 5 seconds
 
   return () => clearInterval(interval);
 }, []);
@@ -77,25 +80,25 @@ export default function Dashboard() {
       },
       {
           Header: 'Serial Number',  
-          accessor: 'serialNo',
+          accessor: 'serial_no',
           minWidth: 120   
       },
       {
         Header: 'Created at',  
-        accessor: 'createdAt',
+        accessor: 'created_at',
         Cell: ( props ) => {
           // return <div>{props.original.reportTime}</div>
-          if((props.original.createdAt == null)||(props.original.createdAt == ""))
+          if((props.original.created_at == null)||(props.original.created_at == ""))
           return <div>-</div>
           else
-          return <div>{new Intl.DateTimeFormat('vi-VN', {year: 'numeric', month: '2-digit',day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'}).format(props.original.createdAt)}</div>
+          return <div>{moment(props.original.created_at).format('DD/MM/YYYY HH:mm')}</div>
          }
       },
       {
         Header: 'Meter reading (m3)',  
-        accessor: 'meterReading',
+        accessor: 'meter_reading',
         Cell: (props) => {
-          return <div>{props.original.meterReading/1000.000}</div>
+          return <div>{props.original.meter_reading/1000.000}</div>
         }  
       },
       {
@@ -120,7 +123,7 @@ export default function Dashboard() {
         }  
       },
       {
-        Header: 'magneticAttackStatus',  
+        Header: 'magnetic_attack_status',  
         accessor: '/82/0',
         Cell: (props) => {
             let info = JSON.parse(props.original['/82/0']);
@@ -155,30 +158,30 @@ export default function Dashboard() {
         Header: 'Report period (min)',  
         accessor: 'reportPeriod',
         Cell: (props) => {
-            return <div>{props.original.reportPeriod/60}</div>
+            return <div>{props.original.report_period/60}</div>
         }  
       },
       {
         Header: 'Pulse constant (L/P)',  
         accessor: 'pulseConstant',
         Cell: (props) => {
-          if(props.original.pulseConstant == "0")
+          if(props.original.pulse_constant == "0")
           {
             return <div>Direct reading meter</div>
           }
-          else if(props.original.pulseConstant == "1")
+          else if(props.original.pulse_constant == "1")
           {
             return <div>1</div>
           }
-          else if(props.original.pulseConstant == "2")
+          else if(props.original.pulse_constant == "2")
           {
             return <div>10</div>
           }
-          else if(props.original.pulseConstant == "3")
+          else if(props.original.pulse_constant == "3")
           {
             return <div>100</div>
           }
-          else if(props.original.pulseConstant == "4")
+          else if(props.original.pulse_constant == "4")
           {
             return <div>1000</div>
           }
