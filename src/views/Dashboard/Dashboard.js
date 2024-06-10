@@ -53,20 +53,20 @@ export default function Dashboard() {
   //
   const [deviceList, setDeviceList] = useState([]);
   useEffect(() => {
-    axios.get(`http://localhost:8086/api/device/search`)
+    axios.get(`http://117.0.35.45:8866/api/device/search`)
       .then(res => {
         setDeviceList(res.data?.data);
         console.log(res.data);
       })
       .catch(err => console.error(err));
   const interval = setInterval(() => {
-    axios.get(`http://localhost:8086/api/device/search`)
+    axios.get(`http://117.0.35.45:8866/api/device/search`)
       .then(res => {
         setDeviceList(res.data);
         console.log(res.data);
       })
       .catch(err => console.error(err));
-  }, 60000); //set your time here. repeat every 5 seconds
+  }, 8000); //set your time here. repeat every 5 seconds
 
   return () => clearInterval(interval);
 }, []);

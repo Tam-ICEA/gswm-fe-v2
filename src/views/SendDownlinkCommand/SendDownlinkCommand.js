@@ -67,20 +67,20 @@ export default function Dashboard() {
   const [pulseConstant, setPulseConstant] = useState("1");
   const [notification, setNotification] = useState("");
   useEffect(() => {
-    axios.get(`http://localhost:8086/api/device/search`)
+    axios.get(`http://117.0.35.45:8866/api/device/search`)
       .then(res => {
         setDeviceList(res.data?.data);
       })
       .catch(err => console.error(err));
     //
-    axios.get(`http://localhost:8086/api/down-link-command/search`)
+    axios.get(`http://117.0.35.45:8866/api/down-link-command/search`)
         .then(res => {
             setHistoricalCmd(res.data?.data);
         })
         .catch(err => console.error(err));
 
     const interval = setInterval(() => {
-      axios.get(`http://localhost:8086/api/down-link-command/search`)
+      axios.get(`http://117.0.35.45:8866/api/down-link-command/search`)
         .then(res => {
             setHistoricalCmd(res.data?.data);
         })
@@ -179,7 +179,7 @@ export default function Dashboard() {
     {
         try {
             console.log(JSON.stringify({imei: imei, cmd: cmd}));
-            let res = await fetch("http://localhost:8086/api/down-link-command/create", {
+            let res = await fetch("http://117.0.35.45:8866/api/down-link-command/create", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

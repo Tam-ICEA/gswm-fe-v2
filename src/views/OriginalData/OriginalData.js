@@ -54,13 +54,13 @@ export default function Dashboard() {
   //
   const [data, setData] = useState([]);
   useEffect(() => {
-    axios.get(`http://localhost:8086/api/original-data/search`)
+    axios.get(`http://117.0.35.45:8866/api/original-data/search`)
       .then(res => {
         setData(res.data?.data);
       })
       .catch(err => console.error(err));
   const interval = setInterval(() => {
-    axios.get(`http://localhost:8086/api/original-data/search`)
+    axios.get(`http://117.0.35.45:8866/api/original-data/search`)
       .then(res => {
         setData(res.data?.data);
       })
