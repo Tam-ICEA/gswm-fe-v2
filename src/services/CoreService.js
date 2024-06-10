@@ -17,3 +17,7 @@ export const apiGetLinkDown = (data) => {
 
 export const apiCreateLinkDown = (data) =>
   HttpService.post("api/down-link-command/create", data);
+
+export const apiGetUserInfo = (data) => {
+  return HttpService.get("api/getUserInfo");
+};

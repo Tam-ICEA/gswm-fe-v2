@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+const REACT_APP_API = 'http://117.0.35.45:8866/'
+// const REACT_APP_API = 'http://localhost:8086/'
+
 const HttpService = axios.create({
-  baseURL: 'http://117.0.35.45:8866/',
+  baseURL: REACT_APP_API,
   headers: {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*'
@@ -14,7 +17,7 @@ HttpService.interceptors.request.use(function (config) {
   // if (!isEmpty(user)) {
   //   user = JSON.parse(user);
   // }
-  config.headers.Authorization = `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6eyJpZCI6MSwidXNlcl9uYW1lIjoia2hhbmh0diIsInBhc3N3b3JkIjoiJDJhJDEwJDNDZGVCMWpSa1BDTUp1WG1iQWJUVHVzbktDbUxTdENnOWZXT2dSMEQ0L1Y0anRhSExTQkwyIiwibG9naW5fdHlwZSI6bnVsbCwiaXNfYWN0aXZlIjp0cnVlLCJjcmVhdGVkX2F0IjoiMjAyNC0wNi0wN1QwNDoyNToyMS42MjFaIiwidXBkYXRlZF9hdCI6IjIwMjQtMDYtMDdUMDQ6MjU6MjEuNjIxWiIsImFwaV9rZXkiOiI4YzM1MWU3Ni0xZTMxLTRmYjMtYmZkYi1lOTA3YmIxMWZkN2UifSwiaWF0IjoxNzE3NzM1NTUyLCJleHAiOjE3MjEzMzU1NTJ9.5tQFohy8PZaP2WNK9odAGkELV14h2v9Nbow-8gOVtcw`;
+  config.headers.Authorization = `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjozLCJ1c2VyX25hbWUiOiJUYW1JQ0VBIiwicGFzc3dvcmQiOiIkMmEkMTAkcW12VjNNd0loaFRQb29oZXlNNXBZT3ZxNDBQQkJpZERCeDZqYTVoa1VqOW1qb1Boa25ZRjIiLCJsb2dpbl90eXBlIjpudWxsLCJpc19hY3RpdmUiOnRydWUsImNyZWF0ZWRfYXQiOiIyMDI0LTA2LTEwVDE1OjA5OjM4LjE1OVoiLCJ1cGRhdGVkX2F0IjoiMjAyNC0wNi0xMFQxNTowOTozOC4xNTlaIiwiYXBpX2tleSI6IjMwZmRiNmQwLTk3MDUtNDg4Mi1hNWVjLTg2Y2VkZDYzYzAwNSIsInJvbGUiOjF9LCJpYXQiOjE3MTgwMzIxOTksImV4cCI6MzYwMDE3MTgwMzIxOTl9.KtZB-snWiwFnJZXjk_K_e0CAP0hG1NH6J2Vkz36pvl0`;
   return config;
 });
 

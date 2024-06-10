@@ -45,6 +45,7 @@ import moment from "moment";
 import { apiGetLinkDown } from "services/CoreService";
 import { apiGetDevicesInformation } from "services/CoreService";
 import { apiCreateLinkDown } from "services/CoreService";
+import { apiGetUserInfo } from "services/CoreService";
 const useStyles = makeStyles(styles);
 export default function Dashboard() {
   //
@@ -55,11 +56,21 @@ export default function Dashboard() {
   const [meterReading, setMeterReading] = useState("0");
   const [pulseConstant, setPulseConstant] = useState("1");
   const [notification, setNotification] = useState("");
+  const [user, setUser] = useState(null);
 
   const fetchDevices = async () => {
     try {
       const res = await apiGetDevicesInformation({ page: 1, size: 1000 });
       setDeviceList(res.data?.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const fetchUserInfo = async () => {
+    try {
+      const res = await apiGetUserInfo();
+      setUser(res.data?.data);
     } catch (err) {
       console.log(err);
     }
@@ -75,6 +86,7 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
+    fetchUserInfo();
     fetchDevices();
     fetchSendLinkDown();
   }, []);
@@ -161,6 +173,11 @@ export default function Dashboard() {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
+  const handleShowError = () => {
+    setNotification("This function is exclusive to the manufacturer!");
+    setOpen(true);
+  };
+
   return (
     <div>
       <Modal
@@ -209,8 +226,7 @@ export default function Dashboard() {
                 </Select>
               </FormControl>
             </CardBody>
-            <CardFooter>
-            </CardFooter>
+            <CardFooter></CardFooter>
           </Card>
         </GridItem>
       </GridContainer>
@@ -254,7 +270,11 @@ export default function Dashboard() {
               </FormControl>
             </CardBody>
             <CardFooter>
-              <Button onClick={handleSendCmd}>Send</Button>
+              <Button
+                onClick={user?.role === 2 ? handleSendCmd : handleShowError}
+              >
+                Send
+              </Button>
             </CardFooter>
           </Card>
 
@@ -274,7 +294,11 @@ export default function Dashboard() {
               </FormControl>
             </CardBody>
             <CardFooter>
-              <Button onClick={handleSendCmd}>Send</Button>
+              <Button
+                onClick={user?.role === 2 ? handleSendCmd : handleShowError}
+              >
+                Send
+              </Button>
             </CardFooter>
           </Card>
         </GridItem>
@@ -302,7 +326,11 @@ export default function Dashboard() {
               </FormControl>
             </CardBody>
             <CardFooter>
-              <Button onClick={handleSendCmd}>Send</Button>
+              <Button
+                onClick={user?.role === 2 ? handleSendCmd : handleShowError}
+              >
+                Send
+              </Button>
             </CardFooter>
           </Card>
 
@@ -328,7 +356,11 @@ export default function Dashboard() {
               </FormControl>
             </CardBody>
             <CardFooter>
-              <Button onClick={handleSendCmd}>Send</Button>
+              <Button
+                onClick={user?.role === 2 ? handleSendCmd : handleShowError}
+              >
+                Send
+              </Button>
             </CardFooter>
           </Card>
 
