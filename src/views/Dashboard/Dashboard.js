@@ -56,13 +56,13 @@ export default function Dashboard() {
     axios.get(`http://117.0.35.45:8866/api/device/search`)
       .then(res => {
         setDeviceList(res.data?.data);
-        console.log(res.data);
+        console.log(res.data?.data);
       })
       .catch(err => console.error(err));
   const interval = setInterval(() => {
     axios.get(`http://117.0.35.45:8866/api/device/search`)
       .then(res => {
-        setDeviceList(res.data);
+        setDeviceList(res.data?.data);
         console.log(res.data);
       })
       .catch(err => console.error(err));
