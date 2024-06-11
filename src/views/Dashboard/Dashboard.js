@@ -438,10 +438,6 @@ export default function Dashboard() {
               </h3>
             </CardHeader>
             <CardFooter stats>
-              {/* <div className={classes.stats}>
-                <Update />
-                Just Updated
-              </div> */}
             </CardFooter>
           </Card>
         </GridItem>
@@ -549,9 +545,6 @@ export default function Dashboard() {
                     ],
                   ],
                 }}
-                // options={emailsSubscriptionChart.options}
-                // responsiveOptions={emailsSubscriptionChart.responsiveOptions}
-                // listener={emailsSubscriptionChart.animation}
               />
             </CardHeader>
             <CardBody>
@@ -588,21 +581,21 @@ export default function Dashboard() {
                 getTrProps={(state, rowInfo, column, instance) => {
                   return {
                     onClick: (e) => {
-                      console.log(rowInfo.original.id);
-                      if (rowInfo.original != null) {
-                        setDetail({
-                          "/3/0": rowInfo.original["/3/0"],
-                          "/70/0": rowInfo.original["/70/0"],
-                          "/80/0": rowInfo.original["/80/0"],
-                          "/81/0": rowInfo.original["/81/0"],
-                          "/82/0": rowInfo.original["/82/0"],
-                          "/84/0": rowInfo.original["/84/0"],
-                          "/99/0": rowInfo.original["/99/0"],
-                        });
-                      }
+                      // console.log(rowInfo.original.id);
+                      // if (rowInfo.original != null) {
+                      //   setDetail({
+                      //     "/3/0": rowInfo.original["/3/0"],
+                      //     "/70/0": rowInfo.original["/70/0"],
+                      //     "/80/0": rowInfo.original["/80/0"],
+                      //     "/81/0": rowInfo.original["/81/0"],
+                      //     "/82/0": rowInfo.original["/82/0"],
+                      //     "/84/0": rowInfo.original["/84/0"],
+                      //     "/99/0": rowInfo.original["/99/0"],
+                      //   });
+                      // }
 
-                      setOpen(true);
-                      console.log(detail);
+                      // setOpen(true);
+                      // console.log(detail);
                     },
                   };
                 }}

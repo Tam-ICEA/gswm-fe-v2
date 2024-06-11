@@ -61,12 +61,15 @@ export default function Dashboard() {
   const [pulseConstant, setPulseConstant] = useState("1");
   const [notification, setNotification] = useState("");
   const [user, setUser] = useState(null);
+  const [selectedDevice, setSelectedDevice] = useState(null);
   const useQuery = () => {
     return new URLSearchParams(useLocation().search);
   };
 
   const query = useQuery();
   const role = query.get("role");
+  const serial_no = query.get("sn");
+
   const isAdmin = role == "0101915236@@GBS@@";
 
   const fetchDevices = async () => {
@@ -101,6 +104,16 @@ export default function Dashboard() {
     fetchDevices();
     fetchSendLinkDown();
   }, []);
+
+  useEffect(() => {
+    console.log("Chạy vào đâyyyyy");
+    setSelectedDevice(
+      deviceList?.find((item) => item?.serial_no === serial_no)
+    );
+  }, [serial_no, deviceList?.length]);
+
+  console.log("seletedDevice:::", selectedDevice);
+
   //
   const classes = useStyles();
   const columns = useMemo(() => [
@@ -159,27 +172,30 @@ export default function Dashboard() {
   let handleSendCmd = async (e) => {
     e.preventDefault();
     // if(/^\d+$/.test(meterReading))
-    if (imei != "") {
-      try {
-        console.log(JSON.stringify({ imei: imei, cmd: cmd }));
-        const res = await apiCreateLinkDown({ imei: imei, cmd: cmd });
-        if (res?.data.status === 200) {
-          showSuccessAlert(
-            "Send link command",
-            "The command has been written to the cache!"
-          );
-          fetchSendLinkDown();
-        } else {
-          showErrorAlert("Send link command", "An error occourred!");
-        }
-      } catch (err) {
-        showErrorAlert("Send link command", "An error occourred: " + err);
-      }
-    } else {
+    if (!selectedDevice?.imei) {
       showWarning(
         "Send link command",
         "Please select a device before sending the command!"
       );
+      return;
+    }
+    try {
+      console.log(JSON.stringify({ imei: selectedDevice?.imei, cmd: cmd }));
+      const res = await apiCreateLinkDown({
+        imei: selectedDevice?.imei,
+        cmd: cmd,
+      });
+      if (res?.data.status === 200) {
+        showSuccessAlert(
+          "Send link command",
+          "The command has been written to the cache!"
+        );
+        fetchSendLinkDown();
+      } else {
+        showErrorAlert("Send link command", "An error occourred!");
+      }
+    } catch (err) {
+      showErrorAlert("Send link command", "An error occourred: " + err);
     }
   };
   const [open, setOpen] = React.useState(false);
@@ -225,16 +241,18 @@ export default function Dashboard() {
             </CardHeader>
             <CardBody>
               <FormControl fullWidth>
-                <InputLabel id="demo-simple-select-label">
-                  Serial number
-                </InputLabel>
+                {!selectedDevice && (
+                  <InputLabel id="demo-simple-select-label">
+                    Serial number
+                  </InputLabel>
+                )}
                 <Select
-                  value={imei}
+                  value={selectedDevice}
                   label="Serial number"
-                  onChange={(e) => setImei(e.target.value)}
+                  onChange={(e) => setSelectedDevice(e.target.value)}
                 >
                   {deviceList?.map((dev) => (
-                    <MenuItem value={dev.imei}>
+                    <MenuItem value={dev}>
                       {dev.serial_no} - {dev.device_name}
                     </MenuItem>
                   ))}
@@ -398,7 +416,6 @@ export default function Dashboard() {
                 columns={columns}
                 defaultPageSize={10}
                 pageSizeOptions={[10, 20, 50, 100]}
-                selec
                 style={{
                   height: "500px", // This will force the table body to overflow and scroll, since there is not enough room
                   marginTop: "10px",
