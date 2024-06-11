@@ -129,27 +129,21 @@ export default function Dashboard() {
       accessor: "pulse_constant",
     },
     {
+      Header: "Alarm status",
+      accessor: "/82/0",
+      Cell: (props) => {
+        if (props.original?.alarm_status === 1) {
+          return <div style={{ color: "red", fontWeight: "bold" }}>1</div>;
+        } else {
+          return <div>0</div>;
+        }
+      },
+    },
+    {
       Header: "Happened Alarm",
       accessor: "/82/0",
       Cell: (props) => {
-        let alarm_status = props.original?.alarm_status;
-        let happended_alarm = props.original?.happended_alarm;
-
-        let happenedMagneticAttackStatus = false;
-        let happenedAntiDemolitionStatus = false;
-        if (alarm_status == 1) {
-          happenedMagneticAttackStatus = true;
-        } else {
-          happenedMagneticAttackStatus = false;
-        }
-        if (happended_alarm == 1) {
-          happenedAntiDemolitionStatus = true;
-        } else {
-          happenedAntiDemolitionStatus = false;
-        }
-        if (
-          (happenedMagneticAttackStatus || happenedAntiDemolitionStatus) == true
-        ) {
+        if (props.original?.happended_alarm === 1) {
           return <div style={{ color: "red", fontWeight: "bold" }}>1</div>;
         } else {
           return <div>0</div>;
@@ -206,7 +200,7 @@ export default function Dashboard() {
       },
     },
     {
-      Header: "Last seen",
+      Header: "Report time",
       accessor: "created_at",
       Cell: (props) => {
         if (
@@ -226,7 +220,7 @@ export default function Dashboard() {
       Header: "Voltage (V)",
       accessor: "voltage",
       Cell: (props) => {
-        return <div>{props.original.voltage / 100.0}</div>;
+        return <div>{props.original.voltage}</div>;
       },
     },
   ]);
