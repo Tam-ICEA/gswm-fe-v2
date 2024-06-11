@@ -46,6 +46,10 @@ import { apiGetLinkDown } from "services/CoreService";
 import { apiGetDevicesInformation } from "services/CoreService";
 import { apiCreateLinkDown } from "services/CoreService";
 import { apiGetUserInfo } from "services/CoreService";
+import { useLocation } from "react-router-dom";
+import { showSuccessAlert } from "helper";
+import { showErrorAlert } from "helper";
+import { showWarning } from "helper";
 const useStyles = makeStyles(styles);
 export default function Dashboard() {
   //
@@ -57,6 +61,13 @@ export default function Dashboard() {
   const [pulseConstant, setPulseConstant] = useState("1");
   const [notification, setNotification] = useState("");
   const [user, setUser] = useState(null);
+  const useQuery = () => {
+    return new URLSearchParams(useLocation().search);
+  };
+
+  const query = useQuery();
+  const role = query.get("role");
+  const isAdmin = role == "0101915236@@GBS@@";
 
   const fetchDevices = async () => {
     try {
@@ -86,7 +97,7 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    fetchUserInfo();
+    // fetchUserInfo();
     fetchDevices();
     fetchSendLinkDown();
   }, []);
@@ -153,20 +164,22 @@ export default function Dashboard() {
         console.log(JSON.stringify({ imei: imei, cmd: cmd }));
         const res = await apiCreateLinkDown({ imei: imei, cmd: cmd });
         if (res?.data.status === 200) {
-          setNotification("The command has been written to the cache.");
-          setOpen(true);
+          showSuccessAlert(
+            "Send link command",
+            "The command has been written to the cache!"
+          );
           fetchSendLinkDown();
         } else {
-          setNotification("An error occourred");
-          setOpen(true);
+          showErrorAlert("Send link command", "An error occourred!");
         }
       } catch (err) {
-        setNotification("An error occourred: " + err);
-        setOpen(true);
+        showErrorAlert("Send link command", "An error occourred: " + err);
       }
     } else {
-      setNotification("Please select a device before sending the command!");
-      setOpen(true);
+      showWarning(
+        "Send link command",
+        "Please select a device before sending the command!"
+      );
     }
   };
   const [open, setOpen] = React.useState(false);
@@ -174,8 +187,10 @@ export default function Dashboard() {
   const handleClose = () => setOpen(false);
 
   const handleShowError = () => {
-    setNotification("This function is exclusive to the manufacturer!");
-    setOpen(true);
+    showWarning(
+      "Send link command",
+      "This function is exclusive to the manufacturer!"
+    );
   };
 
   return (
@@ -270,9 +285,7 @@ export default function Dashboard() {
               </FormControl>
             </CardBody>
             <CardFooter>
-              <Button
-                onClick={user?.role === 2 ? handleSendCmd : handleShowError}
-              >
+              <Button onClick={isAdmin ? handleSendCmd : handleShowError}>
                 Send
               </Button>
             </CardFooter>
@@ -294,9 +307,7 @@ export default function Dashboard() {
               </FormControl>
             </CardBody>
             <CardFooter>
-              <Button
-                onClick={user?.role === 2 ? handleSendCmd : handleShowError}
-              >
+              <Button onClick={isAdmin ? handleSendCmd : handleShowError}>
                 Send
               </Button>
             </CardFooter>
@@ -326,9 +337,7 @@ export default function Dashboard() {
               </FormControl>
             </CardBody>
             <CardFooter>
-              <Button
-                onClick={user?.role === 2 ? handleSendCmd : handleShowError}
-              >
+              <Button onClick={isAdmin ? handleSendCmd : handleShowError}>
                 Send
               </Button>
             </CardFooter>
@@ -356,9 +365,7 @@ export default function Dashboard() {
               </FormControl>
             </CardBody>
             <CardFooter>
-              <Button
-                onClick={user?.role === 2 ? handleSendCmd : handleShowError}
-              >
+              <Button onClick={isAdmin ? handleSendCmd : handleShowError}>
                 Send
               </Button>
             </CardFooter>
